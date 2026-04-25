@@ -1,0 +1,18 @@
+# 忽略虚拟环境文件夹
+.venv/
+venv/
+ENV/
+
+# 忽略 Python 缓存
+__pycache__/
+*.pyc
+
+# 忽略 Playwright 的浏览器二进制文件
+.playwright-targets/
+
+# 忽略本地开发配置文件
+settings.local.js
+.env
+
+# 忽略输出结果（既然是生成器，生成的日报文件通常不进仓库）
+output/
