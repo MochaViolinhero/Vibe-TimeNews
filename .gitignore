@@ -16,3 +16,6 @@ settings.local.js
 
 # 忽略输出结果（既然是生成器，生成的日报文件通常不进仓库）
 output/
+
+.playwright-mcp/
+.superpowers/
