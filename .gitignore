@@ -19,3 +19,8 @@ output/
 
 .playwright-mcp/
 .superpowers/
+
+# 忽略Planning with files
+findings.md
+progress.md
+task_plan.md
