@@ -1,8 +1,8 @@
 # Vibe TimeNews — 每日新闻日报生成器
 
-> **文档版本**：v1.0
+> **文档版本**：v2.0
 > **编写日期**：2026-04-25
-> **当前阶段**：等待用户审核
+> **当前阶段**：阶段 6 收尾中
 
 ---
 
@@ -34,7 +34,7 @@
 
 | 优先级 | 需求 | 说明 |
 |--------|------|------|
-| P0 | 多源信息聚合 | AI 圈、金融圈、国际新闻三条线 |
+| P0 | 多源信息聚合 | AI 圈、金融圈、国际新闻、GitHub 热点四条线 |
 | P0 | 自动生成日报 | 每天固定时间自动生成 HTML 文件 |
 | P0 | 视觉精美 | 深色主题、卡片式布局、分类清晰 |
 | P1 | 定时运行 | Windows 任务计划，每天 08:00 自动运行 |
@@ -57,10 +57,10 @@
 
 | 分类 | 来源 | 获取方式 | 地址 |
 |------|------|----------|------|
-| AI 新闻 | VentureBeat AI | 官方 RSS | `https://feeds.feedburner.com/venturebeat/AI` |
-| 国际新闻 | BBC World News | 官方 RSS | `http://feeds.bbci.co.uk/news/world/rss.xml` |
-| 国际新闻 | CNN World | 官方 RSS | `http://rss.cnn.com/rss/edition_world.rss` |
-| 财经数据 | 东方财富（East Money） | 公开数据接口 | `https://push2.eastmoney.com` |
+| AI 新闻 | AI HOT（aihot.virxact.com） | 公开 REST API | `https://aihot.virxact.com/api/public/items` |
+| 国际新闻 | Tavily Search | Search API | `https://api.tavily.com/search` |
+| 财经数据 | 新浪财经 + 东方财富 | 公开 API + RSS | `hq.sinajs.cn` / `feed.eastmoney.com` |
+| GitHub 热点 | GitHub Trending | 页面解析 | `https://github.com/trending` |
 
 > **X（推特）暂不纳入**：官方 API 收费，第三方镜像不稳定，暂不加入 MVP。
 
@@ -81,7 +81,7 @@
 │  📰 Vibe TimeNews 日报            2026-04-25    │
 │  08:00 采集 · 共 18 条资讯                      │
 ├─────────────────────────────────────────────────┤
-│  [🤖 AI 圈] [💹 金融] [🌍 国际] [⚡ 要点]      │
+│  [💹 金融] [🤖 AI 圈] [🌍 国际] [🔥 GitHub]      │
 ├─────────────────────────────────────────────────┤
 │                                                 │
 │  🤖 AI 圈                                       │
@@ -169,8 +169,11 @@ e:/Vibe-TimeNews/
 │   ├── run.py                 # 主入口（定时 / 手动双击运行）
 │   ├── fetcher/
 │   │   ├── __init__.py
-│   │   ├── rss_fetcher.py     # RSS 采集（VentureBeat / BBC / CNN）
-│   │   └── finance_fetcher.py # 东方财富数据采集
+│   │   ├── ai_fetcher.py      # AI 圈采集（aihot API，5 子分类）
+│   │   ├── world_fetcher.py   # 国际新闻采集（Tavily Search API）
+│   │   ├── finance_fetcher.py # 财经数据采集（新浪 + 东方财富）
+│   │   └── github_fetcher.py  # GitHub 热点仓库采集
+│   │   ├── rss_fetcher.py     # [保留] RSS 采集（备用）
 │   ├── aggregator.py          # 数据汇总、去重、分类
 │   └── generator.py           # Jinja2 HTML 生成器（含热度排序）
 │

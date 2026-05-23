@@ -24,7 +24,7 @@ def deduplicate(articles: List[Dict]) -> List[Dict]:
 
     for article in articles:
         title = article.get("title", "").strip().lower()
-        link = article.get("link", "").strip().lower()
+        link = (article.get("link", "") or article.get("url", "")).strip().lower()
 
         # 跳过空标题或空链接
         if not title or not link:
@@ -60,34 +60,44 @@ def classify(articles: List[Dict]) -> Dict[str, List[Dict]]:
     return dict(classified)
 
 
-def aggregate(rss_articles: List[Dict], finance_data: Dict[str, Any]) -> Dict[str, Any]:
+def aggregate(ai_news: List[Dict], world_news: List[Dict], finance_data: Dict[str, Any], github_repos: List[Dict] = None) -> Dict[str, Any]:
     """
     汇总所有数据，输出结构化结果
 
     Args:
-        rss_articles: RSS 采集的文章列表
+        ai_news: AI 圈新闻列表（来自 aihot API）
+        world_news: 国际新闻列表（来自 Tavily）
         finance_data: 财经数据（包含 indices / hot_sectors / news）
+        github_repos: GitHub 热点仓库列表
 
     Returns:
         汇总后的数据结构
     """
-    # 去重
-    deduplicated = deduplicate(rss_articles)
+    # AI 新闻按子分类分组
+    ai_by_sub = {}
+    for item in ai_news:
+        sub = item.get("sub_category_cn", "其他")
+        if sub not in ai_by_sub:
+            ai_by_sub[sub] = []
+        ai_by_sub[sub].append(item)
 
-    # 分类
-    classified = classify(deduplicated)
+    # 国际新闻去重
+    world_deduped = deduplicate(world_news)
 
     result = {
-        # AI 圈新闻
-        "ai_news": classified.get("ai", []),
+        # AI 圈（按子分类）
+        "ai_news": ai_news,
+        "ai_by_category": ai_by_sub,
         # 国际新闻
-        "world_news": classified.get("world", []),
+        "world_news": world_deduped,
         # 金融数据
         "finance_indices": finance_data.get("indices", []),
         "finance_sectors": finance_data.get("hot_sectors", []),
         "finance_news": finance_data.get("news", []),
+        # GitHub 热点
+        "github_repos": github_repos or [],
         # 元信息
-        "total_articles": len(deduplicated),
+        "total_articles": len(ai_news) + len(world_deduped) + len(github_repos or []) + len(finance_data.get("news", [])),
         "fetch_time": finance_data.get("fetch_time", ""),
     }
 

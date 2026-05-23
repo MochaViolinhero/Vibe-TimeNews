@@ -269,6 +269,23 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             color: var(--text-primary);
             line-height: 1.55;
             transition: color 0.15s;
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+        }
+        .item-index {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            font-size: 11px;
+            font-weight: 700;
+            border-radius: 4px;
+            background: var(--surface);
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -390,7 +407,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             <nav class="tab-nav">
                 <button class="tab-btn active" data-tab="finance" onclick="switchTab('finance')">
                     金融圈
-                    <span class="tab-count" id="count-finance">{{ (finance_indices|length) + (finance_sectors|length) + (finance_news|length) }}</span>
+                    <span class="tab-count" id="count-finance">{{ finance_news|length }}</span>
                 </button>
                 <button class="tab-btn" data-tab="ai" onclick="switchTab('ai')">
                     AI 圈
@@ -399,6 +416,10 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <button class="tab-btn" data-tab="world" onclick="switchTab('world')">
                     国际新闻
                     <span class="tab-count" id="count-world">{{ world_news|length }}</span>
+                </button>
+                <button class="tab-btn" data-tab="github" onclick="switchTab('github')">
+                    GitHub 热点
+                    <span class="tab-count" id="count-github">{{ github_repos|length }}</span>
                 </button>
             </nav>
         </div>
@@ -444,7 +465,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                     {% for news in finance_news[:20] %}
                     <a href="{{ news.url }}" target="_blank" rel="noopener" class="news-item">
                         <div class="item-body">
-                            <div class="item-title">{{ news.title }}</div>
+                            <div class="item-title"><span class="item-index">{{ loop.index }}</span>{{ news.title }}</div>
                             {% if news.title_en and news.title_en != news.title %}
                             <div class="item-title-en">{{ news.title_en }}</div>
                             {% endif %}
@@ -467,31 +488,27 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
             <!-- ===== AI 圈 ===== -->
             <div class="panel" id="panel-ai">
-                {% if ai_news %}
-                <div class="section-heading"><span>🤖</span> AI 圈</div>
+                {% for cat_name, cat_items in ai_by_category.items() %}
+                <div class="section-heading"><span>🤖</span> {{ cat_name }}</div>
                 <div class="news-list">
-                    {% for news in ai_news[:20] %}
-                    <a href="{{ news.link }}" target="_blank" rel="noopener" class="news-item">
+                    {% for news in cat_items[:10] %}
+                    <a href="{{ news.url }}" target="_blank" rel="noopener" class="news-item">
                         <div class="item-body">
-                            <div class="item-title">{{ news.title }}</div>
-                            {% if news.title_en and news.title_en != news.title %}
-                            <div class="item-title-en">{{ news.title_en }}</div>
+                            <div class="item-title"><span class="item-index">{{ loop.index }}</span>{{ news.title }}</div>
+                            {% if news.summary %}
+                            <div class="item-title-en">{{ news.summary[:80] }}</div>
                             {% endif %}
                             <div class="item-meta">
                                 <span class="item-source">{{ news.source }}</span>
-                                {% if news.published %}
-                                <span class="item-time">{{ news.published }}</span>
-                                {% endif %}
                             </div>
                         </div>
                         <div class="item-right">
-                            <span class="item-hot hot-high">● 热门</span>
                             <span class="ext-icon">↗</span>
                         </div>
                     </a>
                     {% endfor %}
                 </div>
-                {% endif %}
+                {% endfor %}
             </div>
 
             <!-- ===== 国际新闻 ===== -->
@@ -500,21 +517,50 @@ HTML_TEMPLATE = """<!DOCTYPE html>
                 <div class="section-heading"><span>🌍</span> 国际新闻</div>
                 <div class="news-list">
                     {% for news in world_news[:20] %}
-                    <a href="{{ news.link }}" target="_blank" rel="noopener" class="news-item">
+                    <a href="{{ news.url }}" target="_blank" rel="noopener" class="news-item">
                         <div class="item-body">
-                            <div class="item-title">{{ news.title }}</div>
-                            {% if news.title_en and news.title_en != news.title %}
-                            <div class="item-title-en">{{ news.title_en }}</div>
+                            <div class="item-title"><span class="item-index">{{ loop.index }}</span>{{ news.title }}</div>
+                            {% if news.summary %}
+                            <div class="item-title-en">{{ news.summary[:100] }}</div>
                             {% endif %}
                             <div class="item-meta">
                                 <span class="item-source">{{ news.source }}</span>
-                                {% if news.published %}
-                                <span class="item-time">{{ news.published }}</span>
+                            </div>
+                        </div>
+                        <div class="item-right">
+                            <span class="ext-icon">↗</span>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+
+            <!-- ===== GitHub 热点 ===== -->
+            <div class="panel" id="panel-github">
+                {% if github_repos %}
+                <div class="section-heading"><span>🔥</span> GitHub 今日热门仓库</div>
+                <div class="news-list">
+                    {% for repo in github_repos[:15] %}
+                    <a href="{{ repo.url }}" target="_blank" rel="noopener" class="news-item">
+                        <div class="item-body">
+                            <div class="item-title"><span class="item-index">{{ loop.index }}</span>{{ repo.name }}</div>
+                            {% if repo.description %}
+                            <div class="item-title-en">{{ repo.description }}</div>
+                            {% endif %}
+                            <div class="item-meta">
+                                {% if repo.language %}
+                                <span class="item-source">{{ repo.language }}</span>
+                                {% endif %}
+                                {% if repo.stars %}
+                                <span class="item-time">{{ repo.stars }}</span>
+                                {% endif %}
+                                {% if repo.today_stars %}
+                                <span class="item-time">{{ repo.today_stars }}</span>
                                 {% endif %}
                             </div>
                         </div>
                         <div class="item-right">
-                            <span class="item-hot">● 最新</span>
                             <span class="ext-icon">↗</span>
                         </div>
                     </a>
@@ -527,7 +573,7 @@ HTML_TEMPLATE = """<!DOCTYPE html>
     </main>
 
     <footer>
-        <p>Vibe TimeNews · {{ date }} · 数据来源：新浪财经 · 东方财富 · VentureBeat · BBC · CNN</p>
+        <p>Vibe TimeNews · {{ date }} · 数据来源：aihot.virxact.com · 新浪财经 · 东方财富 · Tavily</p>
     </footer>
 
     <script>
@@ -574,7 +620,9 @@ def generate(data: Dict[str, Any], output_dir: str = "output") -> str:
         "finance_sectors": data.get("finance_sectors", []),
         "finance_news": data.get("finance_news", []),
         "ai_news": data.get("ai_news", []),
+        "ai_by_category": data.get("ai_by_category", {}),
         "world_news": data.get("world_news", []),
+        "github_repos": data.get("github_repos", []),
     }
 
     env = Environment()
