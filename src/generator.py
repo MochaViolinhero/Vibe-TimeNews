@@ -165,13 +165,26 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border: none;
             border-bottom: 2px solid transparent;
             cursor: pointer;
-            transition: all 0.2s;
+            transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
             letter-spacing: 0.3px;
             display: flex;
             align-items: center;
             gap: 7px;
+            position: relative;
+            overflow: hidden;
         }
-        .tab-btn:hover { color: var(--text-secondary); }
+        .tab-btn::after {
+            content: '';
+            position: absolute;
+            bottom: 0; left: 50%; right: 50%;
+            height: 2px;
+            background: currentColor;
+            transition: all 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border-radius: 2px;
+        }
+        .tab-btn.active::after { left: 0; right: 0; }
+        .tab-btn:hover { color: var(--text-secondary); transform: translateY(-1px); }
+        .tab-btn:active { transform: scale(0.96); transition-duration: 0.08s; }
         .tab-btn.active {
             color: var(--text-primary);
             border-bottom-color: var(--text-primary);
@@ -196,9 +209,28 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             margin: 0 auto;
             padding: 0 32px 80px;
         }
-        .panel { display: none; animation: fadeUp 0.35s ease; }
-        .panel.active { display: block; }
-        @keyframes fadeUp { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .panel { display: none; }
+        .panel.active { display: block; animation: panelIn 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
+        @keyframes panelIn {
+            from { opacity: 0; transform: translateY(12px) scale(0.99); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(16px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInLeft {
+            from { opacity: 0; transform: translateX(-12px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { box-shadow: 0 0 0 0 rgba(255,159,10,0); }
+            50% { box-shadow: 0 0 12px 2px rgba(255,159,10,0.15); }
+        }
+        @keyframes countUp {
+            from { opacity: 0; transform: scale(0.5); }
+            to { opacity: 1; transform: scale(1); }
+        }
 
         /* ─── 指数行 ───────────────────────────────────────────── */
         .indices-row {
@@ -216,7 +248,17 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             border-right: 1px solid var(--border);
             min-width: 120px;
             flex-shrink: 0;
+            opacity: 0;
+            animation: slideInLeft 0.4s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            transition: background 0.2s;
         }
+        .index-item:nth-child(1) { animation-delay: 0.05s; }
+        .index-item:nth-child(2) { animation-delay: 0.1s; }
+        .index-item:nth-child(3) { animation-delay: 0.15s; }
+        .index-item:nth-child(4) { animation-delay: 0.2s; }
+        .index-item:nth-child(5) { animation-delay: 0.25s; }
+        .index-item:nth-child(6) { animation-delay: 0.3s; }
+        .index-item:hover { background: rgba(255,255,255,0.03); }
         .index-item:last-child { border-right: none; }
         .index-name { font-size: 11px; color: var(--text-muted); font-weight: 500; letter-spacing: 0.3px; }
         .index-price { font-size: 18px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.4px; }
@@ -242,6 +284,22 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             font-size: 12px;
             font-weight: 500;
             color: var(--text-secondary);
+            opacity: 0;
+            animation: fadeInUp 0.35s ease forwards;
+            will-change: transform;
+            transform: translate3d(0,0,0);
+            transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease;
+        }
+        .sector-tag:nth-child(1) { animation-delay: 0.05s; }
+        .sector-tag:nth-child(2) { animation-delay: 0.08s; }
+        .sector-tag:nth-child(3) { animation-delay: 0.11s; }
+        .sector-tag:nth-child(4) { animation-delay: 0.14s; }
+        .sector-tag:nth-child(5) { animation-delay: 0.17s; }
+        .sector-tag:nth-child(n+6) { animation-delay: 0.2s; }
+        .sector-tag:hover {
+            transform: translate3d(0, -2px, 0);
+            border-color: var(--accent-finance);
+        }
             transition: all 0.15s;
         }
         .sector-tag:hover { background: var(--surface-hover); }
@@ -253,15 +311,52 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             grid-template-columns: 1fr auto;
             align-items: start;
             gap: 12px 20px;
-            padding: 18px 0;
+            padding: 18px 12px;
+            margin: 0 -12px;
             border-bottom: 1px solid var(--border-light);
+            border-radius: 8px;
             text-decoration: none;
             color: inherit;
-            transition: background 0.15s;
+            will-change: transform, opacity;
+            transform: translate3d(0,0,0);
+            transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), background-color 0.2s ease;
+            opacity: 0;
+            animation: fadeInUp 0.45s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+            position: relative;
         }
+        .news-item::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 8px;
+            box-shadow: 0 4px 24px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.05);
+            opacity: 0;
+            transition: opacity 0.22s ease;
+            pointer-events: none;
+        }
+        .news-item:nth-child(1) { animation-delay: 0.04s; }
+        .news-item:nth-child(2) { animation-delay: 0.08s; }
+        .news-item:nth-child(3) { animation-delay: 0.12s; }
+        .news-item:nth-child(4) { animation-delay: 0.16s; }
+        .news-item:nth-child(5) { animation-delay: 0.2s; }
+        .news-item:nth-child(6) { animation-delay: 0.24s; }
+        .news-item:nth-child(7) { animation-delay: 0.28s; }
+        .news-item:nth-child(8) { animation-delay: 0.3s; }
+        .news-item:nth-child(9) { animation-delay: 0.32s; }
+        .news-item:nth-child(10) { animation-delay: 0.34s; }
+        .news-item:nth-child(n+11) { animation-delay: 0.36s; }
         .news-item:last-child { border-bottom: none; }
-        .news-item:hover { background: rgba(255,255,255,0.025); }
+        .news-item:hover {
+            background-color: var(--surface-hover);
+            transform: translate3d(6px, 0, 0);
+        }
+        .news-item:hover::after { opacity: 1; }
+        .news-item:active {
+            transform: translate3d(3px, 0, 0) scale(0.98);
+            transition-duration: 0.08s;
+        }
         .news-item:hover .item-title { color: #fff; }
+        .news-item:hover .ext-icon { opacity: 1; transform: translate3d(0,0,0); }
         .item-body { min-width: 0; }
         .item-title {
             font-size: 15px;
@@ -285,7 +380,16 @@ HTML_TEMPLATE = """<!DOCTYPE html>
             background: var(--surface);
             color: var(--text-muted);
             flex-shrink: 0;
+            transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
         }
+        .news-item:hover .item-index {
+            background: var(--accent-ai);
+            color: #fff;
+            transform: scale(1.1);
+        }
+        [id="panel-finance"] .news-item:hover .item-index { background: var(--accent-finance); }
+        [id="panel-world"] .news-item:hover .item-index { background: var(--accent-world); }
+        [id="panel-github"] .news-item:hover .item-index { background: #30d158; }
             display: -webkit-box;
             -webkit-line-clamp: 2;
             -webkit-box-orient: vertical;
@@ -578,14 +682,30 @@ HTML_TEMPLATE = """<!DOCTYPE html>
 
     <script>
         function switchTab(tab) {
+            // Tab 按钮切换
             document.querySelectorAll('.tab-btn').forEach(function(b) {
                 b.classList.toggle('active', b.getAttribute('data-tab') === tab);
             });
+            // 面板切换 + 重新触发动画
             document.querySelectorAll('.panel').forEach(function(p) {
-                p.classList.toggle('active', p.getAttribute('id') === 'panel-' + tab);
+                var isTarget = p.getAttribute('id') === 'panel-' + tab;
+                if (isTarget) {
+                    p.classList.add('active');
+                    // 重新触发 news-item 入场动画
+                    p.querySelectorAll('.news-item').forEach(function(item) {
+                        item.style.animation = 'none';
+                        item.offsetHeight; // force reflow
+                        item.style.animation = '';
+                    });
+                } else {
+                    p.classList.remove('active');
+                }
             });
-            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
+        // 页面加载时给 header 添加入场动画
+        document.addEventListener('DOMContentLoaded', function() {
+            document.querySelector('.header').style.animation = 'fadeInUp 0.5s ease forwards';
+        });
     </script>
 </body>
 </html>"""
